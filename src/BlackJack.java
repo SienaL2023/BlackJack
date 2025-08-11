@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Random;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -89,6 +91,13 @@ public class BlackJack {
                 Image cardImage = new ImageIcon(getClass().getResource(card.getImagePath())).getImage();
                 g.drawImage(cardImage, cardWidth + 25 + (cardWidth + 5) * i, 20, cardWidth, cardHeight, null);
             }
+
+            // draw player's hand
+            for(int i = 0; i < playerHand.size(); i++){
+                Card card = playerHand.get(i);
+                Image cardImage = new ImageIcon(getClass().getResource(card.getImagePath())).getImage();
+                g.drawImage(cardImage, 20 + (cardWidth + 5) * i, 320, cardWidth, cardHeight, null);
+            }
             
         }
     };
@@ -115,6 +124,48 @@ public class BlackJack {
         buttonPanel.add(stayButton);
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
+        // hit button
+        hitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                // get new card  <--> remove from deck
+                // new total sum
+                // ace counter
+                Card card = deck.remove(deck.size()-1);
+                playerSum += card.getValue();
+                if(card.isAce()){
+                    playerAceCount += 1;
+                }
+                playerHand.add(card);
+                if(reducePlayerAce() >= 21) // disables hit button
+                    hitButton.setEnabled(false);
+                
+                gamePanel.repaint();
+            }
+        });
+
+        stayButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                hitButton.setEnabled(false);
+                stayButton.setEnabled(false);
+
+                // dealer's turn to get a card
+                while(dealerSum < 17){
+                    Card card = deck.remove(deck.size() - 1);
+                    dealerSum += card.getValue();
+                    if(card.isAce()){
+                        dealerAceCount += 1;
+                    }
+                    dealerHand.add(card);
+                }
+                gamePanel.repaint();
+
+                // next class
+                // display hidden card after u hit stay
+                // print out total sums (dealer/player)
+                // calculate win/lose
+                // add a reset button to play again
+            }
+        });
 
 
         gamePanel.repaint();
@@ -202,6 +253,23 @@ public class BlackJack {
 
         System.out.println("AFTER SHUFFLE:");
         System.out.println(deck);
+    }
+
+    public int reducePlayerAce(){  // return the new sum
+        while(playerSum > 21 && playerAceCount > 0){
+            playerSum -= (playerAceCount * 10);
+            System.out.println(playerSum);
+        }
+        playerAceCount = 0;
+        return playerSum;
+    }
+
+    public int reduceDealerAce(){
+        while(dealerSum > 21 && dealerAceCount > 0){
+            dealerSum -= (dealerAceCount * 10);
+        }
+        dealerAceCount = 0;
+        return dealerSum;
     }
 
 }
